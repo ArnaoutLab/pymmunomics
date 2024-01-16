@@ -4,13 +4,13 @@
 
 ```sh
 pip install --upgrade pip
-pip install "pymmunomics @ git+https://github.com/JasperBraun/pymmunomics"
+pip install "pymmunomics @ git+https://github.com/ArnaoutLab/pymmunomics"
 ```
 
 for developers:
 ```sh
 pip install --upgrade pip
-git clone https://github.com/JasperBraun/pymmunomics
+git clone https://github.com/ArnaoutLab/pymmunomics
 cd pymmunomics
 pip install -e ".[dev]"
 ```
