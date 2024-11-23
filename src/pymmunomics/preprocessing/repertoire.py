@@ -307,14 +307,14 @@ def repertoire_from_sequence_table(
     counts = (
         sequence_table[clonotype_columns]
         .value_counts()
+        .rename(count_name)
         .to_frame()
-        .rename(columns={0: count_name})
     )
     frequencies = (
         sequence_table[clonotype_columns]
         .value_counts(normalize=True)
+        .rename(frequency_name)
         .to_frame()
-        .rename(columns={0: frequency_name})
     )
     join_frames = [counts, frequencies]
     if other_agg is not None:

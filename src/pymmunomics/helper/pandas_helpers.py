@@ -349,7 +349,10 @@ def concat_pivot_pipe_melt(
         b     5.0   0.0
         c     0.0   0.0
     """
-    pivotted = data_frame.pivot(index=index, columns=columns, values=values)
+    if index is None:
+        pivotted = data_frame.pivot(columns=columns, values=values)
+    else:
+        pivotted = data_frame.pivot(index=index, columns=columns, values=values)
     piped = func(pivotted, *func_args, **func_kwargs)
     melted = concat(
         [
