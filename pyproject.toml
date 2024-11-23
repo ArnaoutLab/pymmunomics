@@ -27,3 +27,9 @@ dev = [
   "pytest-cov>=4.1.0",
   "sphinx>=7.0.1",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
+
+[tool.coverage.run]
+source = ["src"]
