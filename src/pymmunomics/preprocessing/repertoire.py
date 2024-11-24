@@ -8,6 +8,7 @@ from pymmunomics.helper.pandas_helpers import (
     concat_weighted_value_counts,
 )
 
+
 def count_features(
     repertoire: DataFrame,
     repertoire_groups: Sequence[str],
@@ -16,7 +17,6 @@ def count_features(
     partial_repertoire_pools: Union[Iterable[Sequence[str]], None] = None,
     stat: Literal["count", "frequency", "onehot"] = "frequency",
     shared_clonotype_feature_groups: Union[Sequence[str], None] = None,
-
 ):
     """Counts various clonotype feature occurrences in repertoires.
 
@@ -68,7 +68,7 @@ def count_features(
     --------
     >>> import pandas as pd
     >>> from pymmunomics.preprocessing.repertoire import count_features
-    >>> 
+    >>>
     >>> repertoire = pd.DataFrame(
     ...     columns=[
     ...         "g1", "g2", "f1", "f2", "clonesize",
@@ -120,7 +120,7 @@ def count_features(
         "frequency": ("frequency", True),
         "onehot": ("value", False),
     }[stat]
-    
+
     counts = (
         concat_partial_groupby_apply(
             data_frame=repertoire,
@@ -133,59 +133,63 @@ def count_features(
         )
         .reset_index()
         .astype({"values": str})
-        .rename(columns={
-            "values": "feature_value",
-            "columns": "feature",
-            {True: "frequency", False: "count"}[normalize]: count_col,
-        })
+        .rename(
+            columns={
+                "values": "feature_value",
+                "columns": "feature",
+                {True: "frequency", False: "count"}[normalize]: count_col,
+            }
+        )
     )
-    
+
     if shared_clonotype_feature_groups is not None:
         groupby_cols = [
             "feature",
             *[
-                col for col in repertoire_groups
+                col
+                for col in repertoire_groups
                 if col not in shared_clonotype_feature_groups
-            ]
+            ],
         ]
+        melt_func = lambda d: concat_pivot_pipe_melt(
+            d,
+            DataFrame.fillna,
+            values=[count_col],
+            columns="feature_value",
+            index=shared_clonotype_feature_groups,
+            value=0,
+        )
         repertoire_feature_table = (
-            counts
-            .groupby(groupby_cols)
+            counts.groupby(groupby_cols)
             .apply(
-                concat_pivot_pipe_melt,
-                DataFrame.fillna,
-                values=[count_col],
-                columns="feature_value",
-                index=shared_clonotype_feature_groups,
-                value=0,
+                melt_func,
+                include_groups=False,
             )
-            .reset_index()
-            [[
-                *repertoire_groups,
-                "feature",
-                "feature_value",
-                count_col,
-            ]]
+            .reset_index()[
+                [
+                    *repertoire_groups,
+                    "feature",
+                    "feature_value",
+                    count_col,
+                ]
+            ]
         )
     else:
         repertoire_feature_table = counts
     if stat == "onehot":
-        repertoire_feature_table[count_col] = (
-            repertoire_feature_table[count_col]
-            .map(lambda val: int(val > 0))
+        repertoire_feature_table[count_col] = repertoire_feature_table[count_col].map(
+            lambda val: int(val > 0)
         )
 
     if stat != "frequency":
-        repertoire_feature_table[count_col] = (
-            repertoire_feature_table[count_col]
-            .astype(int)
-        )
+        repertoire_feature_table[count_col] = repertoire_feature_table[
+            count_col
+        ].astype(int)
 
-    return (
-        repertoire_feature_table
-        .sort_values([*repertoire_groups, "feature", "feature_value"])
-        .reset_index(drop=True)
-    )
+    return repertoire_feature_table.sort_values(
+        [*repertoire_groups, "feature", "feature_value"]
+    ).reset_index(drop=True)
+
 
 def get_repertoire_sizes(
     repertoire: DataFrame,
@@ -230,7 +234,7 @@ def get_repertoire_sizes(
     --------
     >>> import pandas as pd
     >>> from pymmunomics.preprocessing.repertoire import get_repertoire_sizes
-    >>> 
+    >>>
     >>> repertoire = pd.DataFrame(
     ...     columns=["g1", "g2", "sample", "clonesize"],
     ...     data=[
@@ -250,9 +254,9 @@ def get_repertoire_sizes(
     ...     clonesize="clonesize",
     ...     partial_repertoire_pools=[[], ["g1"]],
     ... )
-    g1      a      b pooled    
+    g1      a      b pooled
     g2      a   b  a      a   b
-    sample                     
+    sample
     bar     5  13  8     13  13
     foo     3   3  4      7   3
     """
@@ -271,6 +275,7 @@ def get_repertoire_sizes(
         .astype(int)
     )
     return sizes
+
 
 def repertoire_from_sequence_table(
     sequence_table: DataFrame,
@@ -305,10 +310,7 @@ def repertoire_from_sequence_table(
         clonotypes.
     """
     counts = (
-        sequence_table[clonotype_columns]
-        .value_counts()
-        .rename(count_name)
-        .to_frame()
+        sequence_table[clonotype_columns].value_counts().rename(count_name).to_frame()
     )
     frequencies = (
         sequence_table[clonotype_columns]
@@ -318,8 +320,6 @@ def repertoire_from_sequence_table(
     )
     join_frames = [counts, frequencies]
     if other_agg is not None:
-        join_frames.append(
-            sequence_table.groupby(clonotype_columns).agg(other_agg)
-        )
+        join_frames.append(sequence_table.groupby(clonotype_columns).agg(other_agg))
     repertoire = concat(join_frames, axis=1).reset_index()
     return repertoire

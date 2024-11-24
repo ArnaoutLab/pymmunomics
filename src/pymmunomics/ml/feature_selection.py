@@ -15,6 +15,7 @@ from skopt.space.space import Dimension
 
 from pymmunomics.helper.exception import InvalidArgumentError
 
+
 def _kendalltau(x, y):
     correlation = kendalltau(x, y, variant="c")[0]
     if isna(correlation):
@@ -22,23 +23,29 @@ def _kendalltau(x, y):
     else:
         return correlation
 
+
 class IdentityTransformer(TransformerMixin):
     def __init__(self, copy: bool = False):
         self.copy = copy
+
     def fit(self, X, y):
         return self
+
     def transform(self, X):
         if self.copy:
             return X.copy()
         else:
             return X
 
+
 class FlattenColumnTransformer(TransformerMixin):
     def __init__(self, transformer):
         self.transformer = transformer
+
     def fit(self, X, y):
         self.transformer.fit(X, y)
         return self
+
     def transform(self, X):
         result = self.transformer.transform(X)
         if hasattr(result, "columns") and type(result.columns) == MultiIndex:
@@ -48,9 +55,15 @@ class FlattenColumnTransformer(TransformerMixin):
             result.columns.name = flat_names
         return result
 
+
 @remote
 def _calculate_scores_chunk(
-    X, train_index, chunk_index, chunk_size, score_func, y,
+    X,
+    train_index,
+    chunk_index,
+    chunk_size,
+    score_func,
+    y,
 ):
     # train_index_chunk = train_index[chunk_index:chunk_index + chunk_size]
     chunk_stop = min(chunk_index + chunk_size, X.shape[1])
@@ -60,6 +73,7 @@ def _calculate_scores_chunk(
     for j, col in enumerate(X_train_chunk):
         out_chunk[j] = score_func(col, y_train)
     return out_chunk
+
 
 class NullScoreSelectorBase(BaseEstimator, TransformerMixin, ABC):
     def __init__(
@@ -160,6 +174,7 @@ class NullScoreSelectorBase(BaseEstimator, TransformerMixin, ABC):
             # for j, col in enumerate(X.to_numpy()[train_index].T):
             #     out[j] = self.score_func(col, y[train_index])
 
+
 class SelectNullScoreOutlier(NullScoreSelectorBase):
     def fit(self, X: DataFrame, y: ArrayLike):
         """Calculates scores and determines outlying variables.
@@ -202,6 +217,7 @@ class SelectNullScoreOutlier(NullScoreSelectorBase):
         ]
         return self
 
+
 class SelectPairedNullScoreOutlier(NullScoreSelectorBase):
     def fit(self, X, y):
         """Calculates scores and determines outlying variables.
@@ -241,10 +257,10 @@ class SelectPairedNullScoreOutlier(NullScoreSelectorBase):
             prob=[self.alpha / 2, 1 - (self.alpha / 2)],
         )
         self.selected_columns = self.train_X.columns[
-            (delta_scores < self.lower_quantile)
-            | (self.upper_quantile < delta_scores)
+            (delta_scores < self.lower_quantile) | (self.upper_quantile < delta_scores)
         ]
         return self
+
 
 class AggregateNullScoreOutlier(NullScoreSelectorBase):
     def fit(self, X: DataFrame, y: ArrayLike):
@@ -294,7 +310,5 @@ class AggregateNullScoreOutlier(NullScoreSelectorBase):
             X[self.selected_columns]
             .sum(axis=1)
             .to_frame()
-            .rename(columns={
-                0: ";".join(map(str, self.selected_columns.to_list()))
-            })
+            .rename(columns={0: ";".join(map(str, self.selected_columns.to_list()))})
         )

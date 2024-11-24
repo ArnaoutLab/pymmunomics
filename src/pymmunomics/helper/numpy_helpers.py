@@ -2,6 +2,7 @@ from typing import Callable, NamedTuple
 
 from numpy import dtype, memmap
 
+
 def apply_to_memmapped(
     func: Callable,
     arg_to_filepath_memmap_spec: dict[str, tuple],
@@ -40,6 +41,7 @@ def apply_to_memmapped(
             order=spec.order,
         )
     return func(**arg_to_memmap, **func_kwargs)
+
 
 class MemMapSpec(NamedTuple):
     """Describes how to interpret a file as ``numpy.memmap``.

@@ -23,16 +23,20 @@ from pymmunomics.helper.exception import (
 )
 from pymmunomics.helper.generic_helpers import chain_update
 
+
 def agg_first_safely(
     series: Series,
     dropna: bool = True,
 ):
     if series.nunique(dropna=dropna) > 1:
-        warn(AmbiguousValuesWarning(
-            "Aggregating values %s using first row's value: %s; (series name: %s)"
-            % (set(series), series.iloc[0:1], series.name)
-        ))
+        warn(
+            AmbiguousValuesWarning(
+                "Aggregating values %s using first row's value: %s; (series name: %s)"
+                % (set(series), series.iloc[0:1], series.name)
+            )
+        )
     return series.iloc[0]
+
 
 def apply_zipped(
     data_frame: DataFrame,
@@ -65,15 +69,10 @@ def apply_zipped(
     """
     zipped_columns = zip(*[data_frame[key] for key in keys])
     if unpack:
-        return [
-            func(*vals, *args, **kwargs)
-            for vals in zipped_columns
-        ]
+        return [func(*vals, *args, **kwargs) for vals in zipped_columns]
     else:
-        return [
-            func(vals, *args, **kwargs)
-            for vals in zipped_columns
-        ]
+        return [func(vals, *args, **kwargs) for vals in zipped_columns]
+
 
 def assert_groups_equal(
     data_frame: DataFrame,
@@ -105,7 +104,7 @@ def assert_groups_equal(
     --------
     >>> import pandas as pd
     >>> from pymmunomics.helper.pandas_helpers import assert_groups_equal
-    >>> 
+    >>>
     >>> data_frame = pd.DataFrame(
     ...     index=[1, 2, 2, 1, 1, 2],
     ...     columns=["g1", "g2", "val1", "val2"],
@@ -144,6 +143,7 @@ def assert_groups_equal(
         other = group_pipe(groupby.get_group(group))
         assert_frame_equal(first, other, **assert_frame_equal_kwargs)
 
+
 def column_combinations(data_frame: DataFrame, columns: Sequence[str]):
     """Obtains set of value combinations in columns.
 
@@ -160,6 +160,7 @@ def column_combinations(data_frame: DataFrame, columns: Sequence[str]):
         A set of tuples of combinations of values in specified columns.
     """
     return set(zip(*[data_frame[col] for col in columns]))
+
 
 def concat_partial_groupby_apply(
     data_frame: DataFrame,
@@ -216,7 +217,7 @@ def concat_partial_groupby_apply(
     --------
     >>> import pandas as pd
     >>> from pymmunomics.helper.pandas_helpers import concat_partial_groupby_apply
-    >>> 
+    >>>
     >>> data_frame = pd.DataFrame(
     ...     columns=["group1", "group2", "val"],
     ...     data=[
@@ -236,7 +237,7 @@ def concat_partial_groupby_apply(
     ...     pooled=[[], ["group2"], ["group1", "group2"]],
     ... )
                      val
-    group1 group2       
+    group1 group2
     a      a           2
            b          77
     b      a         195
@@ -250,15 +251,11 @@ def concat_partial_groupby_apply(
     for pcols in pooled:
         concat_horizontal = []
         for func_ in func:
-            pooled_data_frame = (
-                data_frame
-                .drop(columns=pcols)
-                .assign(**{col: pooled_val for col in pcols})
+            pooled_data_frame = data_frame.drop(columns=pcols).assign(
+                **{col: pooled_val for col in pcols}
             )
-            horizontal_item = (
-                pooled_data_frame
-                .groupby(by)
-                .apply(func_, *func_args, **func_kwargs)
+            horizontal_item = pooled_data_frame.groupby(by).apply(
+                func_, include_groups=False, *func_args, **func_kwargs
             )
             concat_horizontal.append(horizontal_item)
         vertical_item = concat(
@@ -314,7 +311,7 @@ def concat_pivot_pipe_melt(
     >>> import numpy as np
     >>> import pandas as pd
     >>> from pymmunomics.helper.pandas_helpers import concat_pivot_pipe_melt
-    >>> 
+    >>>
     >>> data_frame = pd.DataFrame(
     ...     columns=["idx", "col", "val1", "val2"],
     ...     data=[
@@ -341,7 +338,7 @@ def concat_pivot_pipe_melt(
     ...     value=0,
     ... )
              val1  val2
-    idx col            
+    idx col
     a   a     1.0   1.0
         b     2.0   0.0
         c     3.0   3.0
@@ -418,7 +415,7 @@ def concat_weighted_value_counts(
     ...     normalize=True,
     ... )
                                  frequency
-    columns              values           
+    columns              values
     column_2             x        0.009990
                          y        0.990010
     (column_1, column_2) (a, x)   0.000990
@@ -434,30 +431,24 @@ def concat_weighted_value_counts(
 
     for subset in subsets:
         counts_list.append(
-            data_frame
-            .groupby(subset)
-            [[weight]]
+            data_frame.groupby(subset)[[weight]]
             .sum()
-            .pipe(lambda df: df.assign(
-                values=df.index.to_flat_index(),
-                columns=(
-                    [
-                        subset
-                        if type(subset) == str
-                        else tuple(subset)
-                    ]
-                    * len(df)
-                ),
-            ))
+            .pipe(
+                lambda df: df.assign(
+                    values=df.index.to_flat_index(),
+                    columns=(
+                        [subset if type(subset) == str else tuple(subset)] * len(df)
+                    ),
+                )
+            )
             .set_index(["columns", "values"])
-            .rename(columns={
-                weight: "frequency" if normalize else "count"
-            })
+            .rename(columns={weight: "frequency" if normalize else "count"})
         )
         if normalize:
             counts_list[-1] /= data_frame[weight].sum()
     counts = concat(counts_list)
     return counts
+
 
 def pipe_assign_from_func(
     data_frame: DataFrame,
@@ -494,6 +485,7 @@ def pipe_assign_from_func(
     data_frame_[names] = pipe_func(data_frame, **kwargs)
     return data_frame_
 
+
 # def read_as_tuples(
 #     filepath: str,
 #     columns: Sequence[str],
@@ -526,6 +518,7 @@ def pipe_assign_from_func(
 #         [columns]
 #         .apply(tuple, axis=1)
 #     )
+
 
 def read_mapping(
     filepath: str,
@@ -565,14 +558,13 @@ def read_mapping(
     else:
         subset = [*key, value]
     mapping = (
-        read_func(filepath, **read_kwargs)
-        [subset]
+        read_func(filepath, **read_kwargs)[subset]
         .dropna()
         .set_index(key)
-        .to_dict()
-        [value]
+        .to_dict()[value]
     )
     return mapping
+
 
 def read_combine_mappings(
     filepaths: Sequence[str],
@@ -632,11 +624,12 @@ def read_combine_mappings(
     combined_mappings = chain_update(mappings=mappings)
     return combined_mappings
 
+
 def remove_duplicated_rows(
     data_frame: DataFrame,
     identity_columns: Sequence[str],
     value_columns: Sequence[str],
-    equal_nan: bool=False,
+    equal_nan: bool = False,
 ) -> tuple[DataFrame, DataFrame]:
     """Removes rows corresponding to duplicated data.
 
@@ -681,13 +674,16 @@ def remove_duplicated_rows(
                     diverging_values = True
 
             if diverging_values:
-                warn(DivergingValuesWarning(
-                    "Values for %s diverged unexpectedly; only first"
-                    " measurement is used: %s." % (duplicate, df)
-                ))
+                warn(
+                    DivergingValuesWarning(
+                        "Values for %s diverged unexpectedly; only first"
+                        " measurement is used: %s." % (duplicate, df)
+                    )
+                )
     return (data_frame.loc[~is_duplicate], data_frame.loc[is_duplicate])
 
-def squash_column_safely(column: Series, preference: list=[]):
+
+def squash_column_safely(column: Series, preference: list = []):
     """Reduces column into single value.
 
     Parameters
@@ -717,14 +713,17 @@ def squash_column_safely(column: Series, preference: list=[]):
                 break
         else:
             squashed_value = column.iloc[0]
-        warn(DivergingValuesWarning(
-            f"More than one distinct value in column:"
-            f" {uniqued}; squashed into single value:"
-            f" {squashed_value}."
-        ))
+        warn(
+            DivergingValuesWarning(
+                f"More than one distinct value in column:"
+                f" {uniqued}; squashed into single value:"
+                f" {squashed_value}."
+            )
+        )
     else:
         squashed_value = column.iloc[0]
     return squashed_value
+
 
 def weighted_mean(
     data_frame: DataFrame,
@@ -748,14 +747,13 @@ def weighted_mean(
         The resulting weighted mean defined as:
             sum(weights * values)
     """
-    data_frame_ = data_frame[
-        ~(data_frame[[weight, value]].isna().any(axis=1))
-    ]
+    data_frame_ = data_frame[~(data_frame[[weight, value]].isna().any(axis=1))]
     return (data_frame_[value] * data_frame_[weight]).sum()
+
 
 def weighted_variance(data_frame, value, weight):
     """Calculates variance from values and weights.
-    
+
     Parameters
     ----------
     data_frame:
@@ -771,15 +769,14 @@ def weighted_variance(data_frame, value, weight):
         The resulting variance defined as:
             sum(weights * ((values - mean) ** 2))
     """
-    data_frame_ = data_frame[
-        ~(data_frame[[weight, value]].isna().any(axis=1))
-    ]
+    data_frame_ = data_frame[~(data_frame[[weight, value]].isna().any(axis=1))]
     mean = weighted_mean(data_frame_, value=value, weight=weight)
     return (data_frame_[weight] * ((data_frame_[value] - mean) ** 2)).sum()
 
+
 def weighted_skewness(data_frame, value, weight):
     """Calculates skewness from values and weights.
-    
+
     Parameters
     ----------
     data_frame:
@@ -795,9 +792,9 @@ def weighted_skewness(data_frame, value, weight):
         The resulting skewness defined as:
             sum(weights * ((values - mean) ** 3)) / (sum(weights * ((values - mean) ** 2)) ** (3/2))
     """
-    data_frame_ = data_frame[
-        ~(data_frame[[weight, value]].isna().any(axis=1))
-    ]
+    data_frame_ = data_frame[~(data_frame[[weight, value]].isna().any(axis=1))]
     mean = weighted_mean(data_frame_, value=value, weight=weight)
     variance = weighted_variance(data_frame_, value=value, weight=weight)
-    return (data_frame_[weight] * ((data_frame_[value] - mean) ** 3)).sum() / (variance ** (3/2))
+    return (data_frame_[weight] * ((data_frame_[value] - mean) ** 3)).sum() / (
+        variance ** (3 / 2)
+    )

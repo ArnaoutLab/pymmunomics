@@ -7,6 +7,7 @@ LOG_HANDLER: logging.StreamHandler
 LOGGER: logging.Logger
     Multiprocessing-safe logger.
 """
+
 from logging import (
     captureWarnings,
     getLogger,
@@ -28,6 +29,7 @@ LOGGER.addHandler(LOG_HANDLER)
 
 captureWarnings(True)
 getLogger("py.warnings").addHandler(LOG_HANDLER)
+
 
 def set_log_level(level):
     LOGGER.setLevel(level)

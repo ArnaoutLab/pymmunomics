@@ -10,6 +10,7 @@ from typing import Any, Callable, Hashable, Iterable, Literal, Sequence, Union
 
 from pymmunomics.helper.exception import InvalidArgumentError
 
+
 def call_method(
     obj: Any,
     method: str,
@@ -17,6 +18,7 @@ def call_method(
     **kwargs,
 ):
     return getattr(obj, method)(*args, **kwargs)
+
 
 def chain_update(
     mappings: Sequence[dict],
@@ -63,6 +65,7 @@ def chain_update(
             #         result[key] = mapping[value]
     return result
 
+
 # def concatenate_files(
 #     input_filepaths: Sequence[str],
 #     output_filepath: str,
@@ -105,6 +108,7 @@ def chain_update(
 #             remove(filepath)
 #     return None
 
+
 def glob_files(pathname: str, *args, **kwargs):
     """Returns matches that are files.
 
@@ -123,6 +127,7 @@ def glob_files(pathname: str, *args, **kwargs):
     filepaths = [p for p in all_paths if isfile(p)]
     return filepaths
 
+
 def map_has_substring(s: str, substrings: Iterable[str]) -> bool:
     """Determines if s has any of the substrings.
 
@@ -138,11 +143,8 @@ def map_has_substring(s: str, substrings: Iterable[str]) -> bool:
     has_substring:
         Indicates whether or not s has one of the substrings.
     """
-    return any(
-        substring in s
-        for substring
-        in substrings
-    )
+    return any(substring in s for substring in substrings)
+
 
 def map_replace(
     s: str,
@@ -179,6 +181,7 @@ def map_replace(
             return f"{s[:-len(infix)]}{new_infix}"
     else:
         return s
+
 
 # @contextmanager
 # def open_file_or_stdout(
@@ -255,11 +258,12 @@ def map_replace(
 #     ]
 #     return [*small_chunks, *big_chunks]
 
+
 class Pipeline:
-    
+
     def __init__(self, steps: Sequence[Callable]):
         """Applies sequence of functions on successive results.
-        
+
         Parameters
         ----------
         steps:
@@ -306,8 +310,10 @@ class Pipeline:
             result = step(result, **step_kwargs_)
         return result
 
+
 def prepend(s: str, prefix: str):
     return f"{prefix}{s}"
+
 
 def set_intersections(sets: Sequence[Iterable[Hashable]]):
     if len(sets) == 0:
@@ -317,6 +323,7 @@ def set_intersections(sets: Sequence[Iterable[Hashable]]):
     for item in sets[1:]:
         intersection = intersection.intersection(set(item))
     return intersection
+
 
 def set_unions(sets: Sequence[Iterable[Hashable]]):
     if len(sets) == 0:

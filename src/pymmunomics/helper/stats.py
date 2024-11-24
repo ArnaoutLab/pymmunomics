@@ -9,8 +9,10 @@ from scipy.stats import mannwhitneyu
 
 from pymmunomics.helper.exception import InvalidArgumentError
 
+
 def mannwhitneyu_pvalue(a, b, **kwargs):
     return mannwhitneyu(a, b, **kwargs).pvalue
+
 
 # def _validate_compare_cumulatives_at_best_separator_args(
 #     x: ArrayLike, y1: ArrayLike, y2: ArrayLike,
@@ -29,6 +31,7 @@ def mannwhitneyu_pvalue(a, b, **kwargs):
 #             " of y1 and y2"
 #         )
 
+
 def median_difference(a: ArrayLike, b: ArrayLike):
     """Returns median difference of items from b minus items from a.
 
@@ -42,10 +45,9 @@ def median_difference(a: ArrayLike, b: ArrayLike):
     s:
         Median difference of items from b minus items from a.
     """
-    theilsen_estimator = median(
-        [b_ - a_ for a_, b_ in product(a, b)]
-    )
+    theilsen_estimator = median([b_ - a_ for a_, b_ in product(a, b)])
     return theilsen_estimator
+
 
 # def compare_cumulatives_at_best_separator(
 #     x: ArrayLike,
