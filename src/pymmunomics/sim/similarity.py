@@ -23,6 +23,7 @@ binding_similarity:
     Calculates binding similarities of antibodies or B-/T-cell
     receptors.
 """
+
 from abc import ABC, abstractmethod
 from typing import Callable, Sequence, Union
 
@@ -35,6 +36,7 @@ from ray import remote, get, put
 
 from pymmunomics.helper.exception import NotImplementedError
 from pymmunomics.helper.log import LOGGER
+
 
 def binding_similarity(left: Sequence, right: Sequence):
     """
@@ -57,7 +59,8 @@ def binding_similarity(left: Sequence, right: Sequence):
     if (left[1], left[2]) != (right[1], right[2]):
         return 0.0
     else:
-        return 0.3**levenshtein(left[0], right[0])
+        return 0.3 ** levenshtein(left[0], right[0])
+
 
 class Similarity(ABC):
     """Interface for classes computing (weighted) similarities."""
@@ -249,12 +252,13 @@ class SimilarityFromFunction(Similarity):
                 range(0, self.X.shape[0], self.chunk_size),
                 weighted_similarity_chunks,
             ):
-                self.similarities_out[chunk_index:chunk_index+similarities_chunk[1].shape[0]] = similarities_chunk[1]
-        return concatenate([
-            similarities_chunk[0]
-            for similarities_chunk
-            in weighted_similarity_chunks
-        ])
+                self.similarities_out[
+                    chunk_index : chunk_index + similarities_chunk[1].shape[0]
+                ] = similarities_chunk[1]
+        return concatenate(
+            [similarities_chunk[0] for similarities_chunk in weighted_similarity_chunks]
+        )
+
 
 def make_similarity(
     similarity: Union[DataFrame, ndarray, str, Callable],
@@ -295,7 +299,11 @@ def make_similarity(
         )
     elif isinstance(similarity, Callable):
         return SimilarityFromFunction(
-            similarity=similarity, X=X, Y=Y, similarities_out=similarities_out, chunk_size=chunk_size,
+            similarity=similarity,
+            X=X,
+            Y=Y,
+            similarities_out=similarities_out,
+            chunk_size=chunk_size,
         )
     else:
         raise NotImplementedError(

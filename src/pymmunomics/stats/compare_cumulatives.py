@@ -1,4 +1,5 @@
 """Module for comparison of cumulatives."""
+
 from typing import Callable, NamedTuple, Tuple, Union
 
 from numpy import (
@@ -13,6 +14,7 @@ from scipy.stats import mannwhitneyu
 
 from pymmunomics.helper.exception import InvalidArgumentError
 from pymmunomics.helper.stats import median_difference
+
 
 def get_best_separator_pos(items: ndarray):
     """Gets position which best separates items into two groups.
@@ -37,11 +39,14 @@ def get_best_separator_pos(items: ndarray):
         raise InvalidArgumentError(
             "Expect 1-d array, but got shape: %s" % (items.shape,)
         )
-    separator_scores = array([
-        np_abs(np_sum(items[:i])) + np_abs(np_sum(items[i:]))
-        for i in arange(len(items))
-    ])
+    separator_scores = array(
+        [
+            np_abs(np_sum(items[:i])) + np_abs(np_sum(items[i:]))
+            for i in arange(len(items))
+        ]
+    )
     return argmax(separator_scores)
+
 
 class CompareBestSlopeSeparatorCumulativesResult(NamedTuple):
     pvalue: float
@@ -49,8 +54,10 @@ class CompareBestSlopeSeparatorCumulativesResult(NamedTuple):
     slopes: ndarray
     best_separator_pos: int
 
+
 def _mannwhitneyu(a: ndarray, b: ndarray):
     return mannwhitneyu(a, b).pvalue
+
 
 def _validate_compare_best_slope_separator_cumulatives(
     a: ndarray,
@@ -61,24 +68,22 @@ def _validate_compare_best_slope_separator_cumulatives(
     if len(a.shape) != 2 or len(b.shape) != 2 or a.shape[1] != b.shape[1]:
         raise InvalidArgumentError(
             "Invalid shapes for a %s, or b %s. Must be 2-dimensional"
-            " and have same number of columns."
-            % (a.shape, b.shape)
+            " and have same number of columns." % (a.shape, b.shape)
         )
     if a.shape[0] == 0 or b.shape[0] == 0:
         raise InvalidArgumentError("One or more empty input arrays.")
-    if not callable(slope) and (
-        len(slope.shape) != 1 or slope.shape[0] != a.shape[1]
-    ):
+    if not callable(slope) and (len(slope.shape) != 1 or slope.shape[0] != a.shape[1]):
         raise InvalidArgumentError(
             "Invalid shape for slope %s. Must be 1-dimensional with one"
             " entry per column in a or b."
         )
 
+
 def compare_best_slope_separator_cumulatives(
-  a: ndarray,
-  b: ndarray,
-  slope: Union[Callable, ndarray] = median_difference,
-  test_func: Callable = _mannwhitneyu,
+    a: ndarray,
+    b: ndarray,
+    slope: Union[Callable, ndarray] = median_difference,
+    test_func: Callable = _mannwhitneyu,
 ) -> CompareBestSlopeSeparatorCumulativesResult:
     """Compares cumulatives up to best slope-separating line.
 
@@ -99,7 +104,10 @@ def compare_best_slope_separator_cumulatives(
         two-tailed Mann-Whitney U by default.
     """
     _validate_compare_best_slope_separator_cumulatives(
-        a=a, b=b, slope=slope, test_func=test_func,
+        a=a,
+        b=b,
+        slope=slope,
+        test_func=test_func,
     )
 
     if callable(slope):
@@ -108,8 +116,8 @@ def compare_best_slope_separator_cumulatives(
         slopes = slope
 
     best_separator_pos = get_best_separator_pos(slopes)
-    cumulatives_a = a[:,:best_separator_pos].sum(axis=1)
-    cumulatives_b = b[:,:best_separator_pos].sum(axis=1)
+    cumulatives_a = a[:, :best_separator_pos].sum(axis=1)
+    cumulatives_b = b[:, :best_separator_pos].sum(axis=1)
     result = CompareBestSlopeSeparatorCumulativesResult(
         pvalue=test_func(cumulatives_a, cumulatives_b),
         cumulatives=(cumulatives_a, cumulatives_b),

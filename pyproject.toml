@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-  "setuptools>=49",
+  "hatchling",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "pymmunomics"
@@ -15,13 +15,10 @@ authors = [
   {name = "Jasper Braun", email = "jasperbraun90@gmail.com"},
 ]
 keywords = ["AIRR", "immunology", "immune repertoire"]
-dynamic = ["dependencies"]
+dependencies = [ "numpy==2.1.2", "openpyxl==3.1.5", "pandas==2.2.3", "polyleven==0.8", "ray>=2.4.0", "scikit-learn>=1.2.2", "scikit-optimize>=0.9.0", "scipy>=1.10.1" ]
 
 [project.urls]
 repository = "https://github.com/JasperBraun/pymmunomics.git"
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
 
 [project.optional-dependencies]
 dev = [
@@ -30,3 +27,9 @@ dev = [
   "pytest-cov>=4.1.0",
   "sphinx>=7.0.1",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
+
+[tool.coverage.run]
+source = ["src"]
