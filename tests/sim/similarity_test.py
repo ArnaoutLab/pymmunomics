@@ -586,7 +586,7 @@ class TestSimilarityFromFunction:
         similarity = make_similarity(
             similarity=inner,
             X=X,
-            # similarities_out=actual_similarities,  TODO: add this back in
+            similarities_out=actual_similarities,
             chunk_size=2,
         )
         species_frequencies = array([
@@ -607,7 +607,7 @@ class TestSimilarityFromFunction:
             [ 0. ,  0. ,  0. ,  0. ],
             [-0.5,  8.8,  0. , 13. ],
         ])
-        # assert allclose(actual_similarities, expected_similarities) TODO: add this back in
+        assert allclose(actual_similarities, expected_similarities)
         assert allclose(
             actual_weighted_similarities,
             expected_weighted_similarities,
@@ -690,7 +690,7 @@ class TestSimilarityFromFunction:
             similarity=inner,
             X=X,
             Y=Y,
-            # similarities_out=actual_similarities, TODO: add this back in
+            similarities_out=actual_similarities,
             chunk_size=2,
         )
         species_frequencies = array([
@@ -710,7 +710,7 @@ class TestSimilarityFromFunction:
             [ 0.  ,  0.  ,  0.  ,  0.  ],
             [-0.25,  4.05,  0.  ,  6.  ],
         ])
-        # assert allclose(actual_similarities, expected_similarities) TODO: add this back in
+        assert allclose(actual_similarities, expected_similarities)
         assert allclose(
             actual_weighted_similarities,
             expected_weighted_similarities,

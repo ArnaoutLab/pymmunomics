@@ -126,7 +126,7 @@ def make_similarity(
             func=similarity,
             X=X,
             Y=Y,
-            # similarities_out=similarities_out, TODO: not yet implemented in greylock
+            similarities_out=similarities_out,
             chunk_size=chunk_size,
         ))
     else:
